@@ -1,64 +1,25 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+# Lakulish Portfolio
 
-# Base44 Project
+Independent React + Vite portfolio frontend with Supabase authentication, Postgres data, and Storage. This project is no longer coupled to Base44's builder or preview runtime.
 
-Use this repository to run and edit the app locally, then publish changes back through db.
+## Setup
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+1. `npm install`
+2. Create a Supabase project and run `supabase/migrations/202611120001_initial_portfolio.sql` in its SQL Editor.
+3. Copy `.env.example` to `.env.local` and add the Supabase project URL and anon/public key.
+4. Create your admin user in Supabase Authentication > Users, then promote it using the admin promotion SQL at the end of the migration.
+5. Configure your local and production URLs in Supabase Authentication > URL Configuration.
+6. Run `npm run dev` / `npm run build`.
 
-## Prerequisites
+Never expose the Supabase service-role key in browser code. The anon key is intended for the frontend; RLS policies protect private data.
 
-1. Clone the repository using the project's Git URL.
-2. Navigate to the project directory.
-3. Install dependencies: `npm install`.
-4. Install the Base44 CLI: `npm install -g base44@latest`.
-5. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/) — the local Base44 backend runs on it.
+## Deploy
 
-Run `base44 --help` (or see the [CLI reference](https://docs.db.com/developers/references/cli/commands/introduction)) for the full command surface.
+Push this repository to GitHub and import it into Vercel. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as Vercel environment variables.
 
-## Run Locally
+## Notes
 
-Three commands, from the project root:
-
-```bash
-base44 login   # one-time per machine
-base44 link    # one-time per clone
-base44 dev     # local backend + frontend together
-```
-
-Open the frontend URL that `base44 dev` prints (typically `http://localhost:5173`).
-
-Notes:
-
-- **Every fresh clone needs `base44 link`.** It writes `base44/.app.jsonc` (the app-id pointer), which is deliberately gitignored. Your app id is in the Builder URL (`app.db.com/apps/<id>/...`); `base44 link --help` shows the non-interactive flags.
-- **`base44 dev` runs the frontend for you** (via `site.serveCommand` in this repo's `base44/config.jsonc`) — never run `npm run dev` yourself: alone it serves a UI with no backend behind it (`[base44] Proxy not enabled`, every `/api` call fails), and alongside `base44 dev` the second Vite silently takes the next port and you end up looking at the wrong one.
-- **The app must be published at least once for the UI to load under `base44 dev`.** The frontend boots by fetching app settings from the hosted app; before the first publish that fails and every page redirects to login. The local API works regardless.
-- Entities, functions, and auth run locally — entity data is **in-memory only**, wiped when `base44 dev` restarts. Everything else (Core integrations, OAuth login) is forwarded to your deployed app. Full breakdown: [Local development overview](https://docs.db.com/developers/backend/overview/local-dev/local-development-overview).
-
-## Frontend Only, Hosted Backend
-
-To work on just the frontend against your app's live hosted backend:
-
-```bash
-base44 dev --remote
-```
-
-⚠️ In this mode writes go to your app's **production data** — plain `base44 dev` keeps everything local.
-
-## Publish Your Changes
-
-After pushing your changes to git, open the Base44 dashboard and publish the app:
-
-```bash
-base44 dashboard open
-```
-
-This repo syncs to Base44 through git, so publish from the dashboard rather than `base44 deploy` — a CLI deploy ships your local tree directly, bypassing the sync, and the deployed state silently diverges from the repo.
-
-## Docs & Support
-
-GitHub integration: [https://docs.db.com/developers/app-code/local-development/github](https://docs.db.com/developers/app-code/local-development/github)
-
-Local development: [https://docs.db.com/developers/backend/overview/local-dev/local-development-overview](https://docs.db.com/developers/backend/overview/local-dev/local-development-overview)
-
-Support: [https://app.db.com/support](https://app.db.com/support)
+- Public content is read from `projects`, `faqs`, `testimonials`, and `site_settings`.
+- Admin-only operations are protected by Supabase Auth + the `profiles.role = 'admin'` row and RLS.
+- Public inquiry submission and analytics event recording still need their Supabase Edge Functions deployed before those actions are live.
+- Email delivery requires a transactional email provider (e.g. Resend) and its API key configured as an Edge Function secret.

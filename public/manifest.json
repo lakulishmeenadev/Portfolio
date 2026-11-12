@@ -1,0 +1,9 @@
+{
+  "name": "Vantly — Websites that get you customers",
+  "short_name": "Vantly",
+  "description": "Fast, mobile-first websites with simple admin dashboards for small businesses worldwide.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#12100C",
+  "theme_color": "#12100C"
+}

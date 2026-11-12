@@ -1,0 +1,7 @@
+project_id = "your-supabase-project-ref"
+
+[functions.submit-inquiry]
+verify_jwt = false
+
+[functions.track-event]
+verify_jwt = false
