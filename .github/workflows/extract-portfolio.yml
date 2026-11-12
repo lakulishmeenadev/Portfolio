@@ -3,13 +3,15 @@ name: Extract migrated portfolio
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/extract-portfolio.yml"
+      - "lakulish-portfolio-supabase-migration.zip"
 
 permissions:
   contents: write
 
 jobs:
   extract:
-    if: !startsWith(github.event.head_commit.message, 'chore: extract migrated portfolio')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
