@@ -1,0 +1,39 @@
+name: Extract migrated portfolio
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: !startsWith(github.event.head_commit.message, 'chore: extract migrated portfolio')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Extract project files into repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="lakulish-portfolio-supabase-migration.zip"
+          test -f "$archive" || { echo "Migration ZIP not found at repository root"; exit 1; }
+          tmp="$(mktemp -d)"
+          unzip -q "$archive" -d "$tmp"
+          package_file="$(find "$tmp" -type f -name package.json -print -quit)"
+          test -n "$package_file" || { echo "No package.json found in archive"; exit 1; }
+          project_dir="$(dirname "$package_file")"
+          rsync -a --exclude='.env.local' "$project_dir"/ ./
+          rm -f "$archive" .env.local
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: extract migrated portfolio project files"
+            git push
+          else
+            echo "No file changes to commit"
+          fi
